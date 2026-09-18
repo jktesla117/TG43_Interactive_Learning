@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TG-43 Dosimetry Formalism — An Interactive Guide</title>
+<style>
+:root{
+  --ink:#f3f5f7; --panel:#ffffff; --panel-2:#eef1f4; --line:#d8dee5;
+  --paper:#10161c; --muted:#5c6773;
+  --teal:#0f8f83; --teal-soft:#dff3f1;
+  --amber:#b5711f; --amber-soft:#fbead4;
+  --cool:#2f5fa8;
+  --serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --radius: 3px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#0b0f14; --panel:#11161d; --panel-2:#161d26; --line:#232b35;
+    --paper:#e9edf1; --muted:#8792a0;
+    --teal:#3fc2b6; --teal-soft:#0f2624;
+    --amber:#e0a35c; --amber-soft:#2a2013;
+    --cool:#6d9be0;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#0b0f14; --panel:#11161d; --panel-2:#161d26; --line:#232b35;
+  --paper:#e9edf1; --muted:#8792a0;
+  --teal:#3fc2b6; --teal-soft:#0f2624;
+  --amber:#e0a35c; --amber-soft:#2a2013;
+  --cool:#6d9be0;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; background:var(--ink); color:var(--paper); font-family:var(--sans);
+  line-height:1.6; font-size:16px; -webkit-font-smoothing:antialiased;
+}
+::selection{ background:var(--teal); color:#04140f; }
+a{ color:var(--teal); }
+.wrap{ max-width:1040px; margin:0 auto; padding:0 24px; }
+.col{ max-width:700px; }
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky; top:0; z-index:40; background:color-mix(in srgb, var(--ink) 88%, transparent);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+}
+.topbar-inner{ display:flex; align-items:center; gap:18px; padding:12px 24px; max-width:1040px; margin:0 auto; }
+.brand{ font-family:var(--serif); font-size:16px; font-weight:700; white-space:nowrap; letter-spacing:.2px; }
+.brand em{ font-style:normal; color:var(--teal); }
+nav.pills{ display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; flex:1; }
+nav.pills::-webkit-scrollbar{ display:none; }
+nav.pills a{
+  color:var(--muted); text-decoration:none; font-size:13px; white-space:nowrap;
+  padding:6px 10px; border-radius:var(--radius);
+}
+nav.pills a:hover{ color:var(--paper); background:var(--panel-2); }
+.theme-btn{
+  border:1px solid var(--line); background:var(--panel); color:var(--paper);
+  width:30px; height:30px; border-radius:var(--radius); cursor:pointer; flex:none;
+  display:flex; align-items:center; justify-content:center; font-size:14px;
+}
+
+/* ---------- hero ---------- */
+header.hero{ padding:64px 0 40px; border-bottom:1px solid var(--line); }
+.kicker{ font-family:var(--mono); font-size:12.5px; color:var(--muted); margin:0 0 14px; }
+.kicker a{ color:var(--muted); }
+h1.title{
+  font-family:var(--serif); font-weight:700; font-size:clamp(30px,4.4vw,46px);
+  line-height:1.12; margin:0 0 18px; max-width:820px; letter-spacing:-.01em;
+}
+.dek{ font-size:17.5px; color:var(--muted); max-width:640px; margin:0; }
+
+/* ---------- sections ---------- */
+section{ padding:56px 0; border-bottom:1px solid var(--line); }
+section:last-of-type{ border-bottom:none; }
+.sec-label{ font-family:var(--mono); font-size:12.5px; color:var(--teal); margin:0 0 8px; }
+h2{ font-family:var(--serif); font-size:28px; font-weight:700; margin:0 0 18px; letter-spacing:-.01em; }
+h3{ font-family:var(--serif); font-size:19px; font-weight:700; margin:28px 0 10px; }
+p{ margin:0 0 15px; }
+.col p, .col li{ color:var(--paper); }
+.muted{ color:var(--muted); }
+.figure-tag{ font-family:var(--mono); font-size:12px; color:var(--muted); margin:6px 0 0; }
+
+/* two-column layout: text + figure */
+.split{ display:grid; grid-template-columns:340px 1fr; gap:36px; align-items:start; }
+@media (max-width:860px){ .split{ grid-template-columns:1fr; } }
+
+/* ---------- panels ---------- */
+.panel{
+  border:1px solid var(--line); background:var(--panel); border-radius:var(--radius);
+  padding:18px 20px;
+}
+.panel + .panel{ margin-top:14px; }
+.callout{
+  border-left:3px solid var(--amber); background:var(--amber-soft); padding:12px 16px;
+  border-radius:0 var(--radius) var(--radius) 0; font-size:14.5px; margin:18px 0;
+}
+.callout strong{ color:var(--amber); }
+
+/* ---------- equation block ---------- */
+.eqn-block{
+  border:1px solid var(--line); border-radius:var(--radius); background:var(--panel);
+  padding:26px 24px; margin:20px 0 8px; overflow-x:auto;
+}
+.eqn{
+  font-family:var(--serif); font-size:22px; text-align:center; white-space:nowrap;
+  letter-spacing:.01em;
+}
+.eqn sup{ font-size:60%; } .eqn sub{ font-size:60%; }
+.term{ cursor:pointer; padding:2px 3px; border-radius:2px; transition:background .15s, color .15s; }
+.term:hover, .term.active{ background:var(--teal-soft); color:var(--teal); }
+
+dl.glossary{ margin:0; }
+dl.glossary > div{
+  display:grid; grid-template-columns:74px 1fr; gap:14px; padding:12px 0;
+  border-top:1px solid var(--line);
+}
+dl.glossary > div:first-child{ border-top:none; }
+dl.glossary dt{ font-family:var(--mono); font-size:15px; color:var(--teal); padding-top:1px; }
+dl.glossary dd{ margin:0; font-size:14.5px; color:var(--paper); }
+dl.glossary dd .u{ color:var(--muted); font-family:var(--mono); font-size:12.5px; }
+dl.glossary > div.active{ background:var(--teal-soft); margin:0 -14px; padding:12px 14px; border-radius:var(--radius); border-top-color:transparent; }
+
+/* ---------- controls ---------- */
+.controls{ display:flex; flex-direction:column; gap:14px; margin:16px 0; }
+.ctrl-row{ display:flex; flex-direction:column; gap:6px; }
+.ctrl-row label{ font-family:var(--mono); font-size:12.5px; color:var(--muted); display:flex; justify-content:space-between; }
+.ctrl-row label .val{ color:var(--teal); }
+input[type=range]{
+  -webkit-appearance:none; width:100%; height:3px; background:var(--line); border-radius:2px; outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:var(--teal); cursor:pointer; border:2px solid var(--ink);
+}
+input[type=range]::-moz-range-thumb{ width:14px; height:14px; border-radius:50%; background:var(--teal); cursor:pointer; border:2px solid var(--ink); }
+select, .seg{
+  font-family:var(--sans); font-size:13.5px; background:var(--panel-2); color:var(--paper);
+  border:1px solid var(--line); border-radius:var(--radius); padding:7px 10px;
+}
+.seg-group{ display:flex; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; width:fit-content; }
+.seg-group button{
+  font-family:var(--mono); font-size:12.5px; padding:7px 12px; background:var(--panel-2); color:var(--muted);
+  border:none; border-right:1px solid var(--line); cursor:pointer;
+}
+.seg-group button:last-child{ border-right:none; }
+.seg-group button.active{ background:var(--teal); color:#04140f; }
+
+.readout{
+  font-family:var(--mono); font-size:13px; border:1px solid var(--line); border-radius:var(--radius);
+  padding:12px 14px; background:var(--panel-2);
+}
+.readout .row{ display:flex; justify-content:space-between; padding:3px 0; }
+.readout .row.total{ border-top:1px solid var(--line); margin-top:6px; padding-top:8px; font-size:14.5px; color:var(--teal); }
+.readout .row span:first-child{ color:var(--muted); }
+
+.fig-panel{
+  border:1px solid var(--line); border-radius:var(--radius); background:var(--panel);
+  padding:14px; position:relative;
+}
+canvas{ display:block; width:100%; }
+.three-host{ width:100%; aspect-ratio:4/3; border-radius:2px; overflow:hidden; cursor:grab; background:var(--panel-2); }
+.three-host:active{ cursor:grabbing; }
+.drag-hint{ font-family:var(--mono); font-size:11px; color:var(--muted); text-align:center; margin-top:8px; }
+
+.legend{ display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:11.5px; color:var(--muted); margin-top:10px; }
+.legend .bar{ flex:1; height:8px; border-radius:2px; }
+
+/* ---------- glossary hover legend for source picker ---------- */
+.source-note{ font-size:13px; color:var(--muted); margin-top:8px; }
+
+/* ---------- quiz ---------- */
+.quiz-item{ border-top:1px solid var(--line); padding:20px 0; }
+.quiz-item:first-child{ border-top:none; }
+.quiz-q{ font-weight:600; margin:0 0 12px; font-size:15.5px; }
+.quiz-opts{ display:flex; flex-direction:column; gap:8px; }
+.quiz-opt{
+  text-align:left; border:1px solid var(--line); background:var(--panel-2); color:var(--paper);
+  padding:10px 14px; border-radius:var(--radius); cursor:pointer; font-size:14px; font-family:var(--sans);
+}
+.quiz-opt:hover{ border-color:var(--teal); }
+.quiz-opt.correct{ border-color:var(--teal); background:var(--teal-soft); }
+.quiz-opt.wrong{ border-color:var(--amber); background:var(--amber-soft); }
+.quiz-explain{ font-size:13.5px; color:var(--muted); margin-top:10px; display:none; }
+.quiz-explain.show{ display:block; }
+
+footer{ padding:36px 0 60px; }
+footer p{ font-size:13px; color:var(--muted); }
+
+@media(max-width:600px){
+  h1.title{ font-size:28px; }
+  .eqn{ font-size:15px; }
+  dl.glossary > div{ grid-template-columns:56px 1fr; }
+}
+@media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">TG-43<em>·</em>Interactive</div>
+    <nav class="pills">
+      <a href="#overview">Overview</a>
+      <a href="#equation">Equation</a>
+      <a href="#geometry">Geometry</a>
+      <a href="#radial">Radial g(r)</a>
+      <a href="#anisotropy">Anisotropy</a>
+      <a href="#map">Dose map</a>
+      <a href="#cloud">3-D cloud</a>
+      <a href="#quiz">Check</a>
+    </nav>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐</button>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">Based on the AAPM Task Group No. 43 update — Rivard et al., <em>Med. Phys.</em> 31(3), 2004 · <a href="https://aapm.onlinelibrary.wiley.com/doi/epdf/10.1118/1.1646040" target="_blank" rel="noopener">source report ↗</a></p>
+    <h1 class="title">Understanding the TG-43 brachytherapy dose formalism, term by term and in three dimensions</h1>
+    <p class="dek">Five terms multiply together to turn a source's air-kerma strength into a dose rate at any point in tissue. This page lets you rotate the geometry, drag the source, and watch each term move — instead of just reading the equation.</p>
+  </div>
+</header>
+
+<section id="overview">
+  <div class="wrap col">
+    <p class="sec-label">§1 — Overview</p>
+    <h2>Why brachytherapy needs its own formalism</h2>
+    <p>In external-beam radiotherapy the beam is far from the patient, so dose falls off gently and fairly uniformly through the treated volume. In brachytherapy the source sits inside or against the tissue being treated, often only millimeters from the region of interest. Dose can change by a factor of two over a single centimeter, and the source itself is not a mathematical point — it is a small cylinder with its own internal absorption and encapsulation.</p>
+    <p>The original 1995 TG-43 report, and the 2004 update this page is based on, solved that problem by splitting the dose calculation into separate, independently-measurable pieces: how fast dose falls off with distance for an idealized source shape, how the real source's finite size and self-absorption modify that fall-off, and how the dose depends on angle relative to the source's long axis. Each piece can be measured or simulated once for a given source model and then reused in any patient geometry.</p>
+    <div class="callout"><strong>Scope note.</strong> TG-43 assumes a homogeneous, water-equivalent medium and a single source with no shielding or interseed attenuation from neighboring sources or applicators. It applies to the low- and intermediate-energy photon-emitting sources used in permanent seed implants and HDR/PDR afterloading.</div>
+  </div>
+</section>
+
+<section id="equation">
+  <div class="wrap col">
+    <p class="sec-label">§2 — The dose-rate equation</p>
+    <h2>One equation, five terms</h2>
+    <p>Click any term below — the equation, the definitions, and the calculators later on the page all use this same anatomy.</p>
+  </div>
+  <div class="wrap">
+    <div class="eqn-block">
+      <div class="eqn" id="eqnDisplay">
+        Ḋ(r,θ) &nbsp;=&nbsp;
+        <span class="term" data-term="sk">S<sub>k</sub></span> ·
+        <span class="term" data-term="lambda">Λ</span> ·
+        <span class="term" data-term="geo">[G<sub>L</sub>(r,θ) / G<sub>L</sub>(r<sub>0</sub>,θ<sub>0</sub>)]</span> ·
+        <span class="term" data-term="radial">g<sub>L</sub>(r)</span> ·
+        <span class="term" data-term="aniso">F(r,θ)</span>
+      </div>
+    </div>
+    <div class="panel">
+      <dl class="glossary" id="glossary">
+        <div data-term="sk"><dt>S<sub>k</sub></dt><dd>Air-kerma strength — the source's output, measured in air, independent of any patient. <span class="u">units: U = cGy·cm²·h⁻¹</span></dd></div>
+        <div data-term="lambda"><dt>Λ</dt><dd>Dose-rate constant — the dose rate the source actually produces at the reference point (1&nbsp;cm, 90°) in water, per unit of air-kerma strength. Converts the source's "output rating" into an actual in-tissue dose rate. <span class="u">units: cGy·h⁻¹·U⁻¹</span></dd></div>
+        <div data-term="geo"><dt>G<sub>L</sub></dt><dd>Geometry function — the purely geometric fall-off of dose with distance, for an idealized line (or point) of the source's shape. Carries the inverse-square law and, for a line source, the fact that a finite rod looks different up close than a point does. Divided by its own value at the reference point so the ratio equals 1 there.</dd></div>
+        <div data-term="radial"><dt>g<sub>L</sub>(r)</dt><dd>Radial dose function — everything the geometry function leaves out along the transverse direction (θ = 90°): photon attenuation through tissue and the source's own material, plus scatter build-up. Normalized to 1 at r₀ = 1&nbsp;cm.</dd></div>
+        <div data-term="aniso"><dt>F(r,θ)</dt><dd>Anisotropy function — how dose at a given radius varies with angle away from 90°. Captures oblique filtration through the source's encapsulation, which reduces dose near the source's long axis (θ near 0° or 180°). Normalized to 1 at θ₀ = 90°.</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section id="geometry">
+  <div class="wrap">
+    <p class="sec-label">§3 — Coordinate frame &amp; geometry function</p>
+    <h2>Where r and θ actually live</h2>
+    <div class="split">
+      <div>
+        <p>Every term in the equation is a function of just two numbers: <strong>r</strong>, the distance from the center of the source, and <strong>θ</strong>, the angle measured from the source's own long axis. The reference point used to normalize everything is fixed at r₀ = 1&nbsp;cm, θ₀ = 90° — directly out to the side of the source, one centimeter away.</p>
+        <p>The geometry function itself comes in two flavors. Treating the source as a <em>point</em> gives the familiar inverse-square law, 1/r². Treating it as the <em>line</em> it actually is — a rod of active length L — accounts for the fact that close to the source, different parts of that rod are at noticeably different distances from your calculation point. That correction, β, is the angle the active length subtends as seen from wherever you're standing.</p>
+        <div class="controls">
+          <div class="ctrl-row">
+            <label>Distance r <span class="val" id="geo_r_val">3.0 cm</span></label>
+            <input type="range" id="geo_r" min="0.3" max="10" step="0.1" value="3">
+          </div>
+          <div class="ctrl-row">
+            <label>Angle θ <span class="val" id="geo_theta_val">60°</span></label>
+            <input type="range" id="geo_theta" min="1" max="179" step="1" value="60">
+          </div>
+          <div class="ctrl-row">
+            <label>Active length L <span class="val" id="geo_L_val">0.35 cm</span></label>
+            <input type="range" id="geo_L" min="0.1" max="1.0" step="0.05" value="0.35">
+          </div>
+          <div class="seg-group" id="geo_mode">
+            <button class="active" data-mode="line">Line-source G</button>
+            <button data-mode="point">Point-source G</button>
+          </div>
+        </div>
+        <div class="readout" id="geo_readout"></div>
+      </div>
+      <div>
+        <div class="fig-panel">
+          <div class="three-host" id="geoScene"></div>
+          <p class="drag-hint">drag to rotate · scroll to zoom</p>
+        </div>
+        <p class="figure-tag">Fig. 1 — teal marker: your point P at (r, θ). amber marker: the fixed reference (1 cm, 90°). Dashed lines from the rod's ends to P (line-source mode) show the subtended angle β used in Gₗ.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="radial">
+  <div class="wrap">
+    <p class="sec-label">§4 — Radial dose function</p>
+    <h2>What the geometry function doesn't explain</h2>
+    <div class="split">
+      <div>
+        <p>Strip out the inverse-square fall-off (that's what dividing by the geometry function does) and what's left is g<sub>L</sub>(r): pure tissue physics along the transverse line, θ = 90°. It is shaped by two competing effects — photons get absorbed and scattered out of the beam as they travel further (which lowers g), while scattered photons from all directions build back up around the detector (which raises it).</p>
+        <p>How those two effects trade off depends heavily on photon energy. Low-energy sources like ¹²⁵I and ¹⁰³Pd are dominated by photoelectric absorption, so g(r) drops off far more steeply with distance than a higher-energy source like ¹⁹²Ir.</p>
+        <div class="controls">
+          <div class="ctrl-row"><label>Source</label>
+            <select id="radial_source">
+              <option value="ir192">¹⁹²Ir HDR</option>
+              <option value="i125">¹²⁵I seed</option>
+              <option value="pd103">¹⁰³Pd seed</option>
+            </select>
+          </div>
+          <div class="ctrl-row">
+            <label>Radius r <span class="val" id="radial_r_val">3.0 cm</span></label>
+            <input type="range" id="radial_r" min="0.5" max="10" step="0.1" value="3">
+          </div>
+        </div>
+        <div class="readout" id="radial_readout"></div>
+      </div>
+      <div>
+        <div class="fig-panel"><canvas id="radialCanvas" height="320"></canvas></div>
+        <p class="figure-tag">Fig. 2 — g(r) for all three sources (selected one bold). Note the steep low-energy fall-off past ~3 cm.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="anisotropy">
+  <div class="wrap">
+    <p class="sec-label">§5 — Anisotropy function</p>
+    <h2>Why the ends of the source are "colder"</h2>
+    <div class="split">
+      <div>
+        <p>A real source is encapsulated in a titanium or steel shell. Photons traveling nearly parallel to the source's long axis (θ near 0° or 180°) have to punch through much more of that shell — and, for seeds, more of the radioactive core's own self-absorption — than photons headed straight out the side. The result is a consistent dip in dose near the source's tips, deepest for low-energy sources whose photons are most easily absorbed.</p>
+        <p>The polar plot traces relative dose around the source at a fixed radius: a perfect circle would mean no anisotropy at all.</p>
+        <div class="controls">
+          <div class="ctrl-row"><label>Source</label>
+            <select id="aniso_source">
+              <option value="ir192">¹⁹²Ir HDR</option>
+              <option value="i125">¹²⁵I seed</option>
+              <option value="pd103">¹⁰³Pd seed</option>
+            </select>
+          </div>
+          <div class="ctrl-row">
+            <label>Radius r <span class="val" id="aniso_r_val">2.0 cm</span></label>
+            <input type="range" id="aniso_r" min="0.5" max="8" step="0.1" value="2">
+          </div>
+          <div class="ctrl-row">
+            <label>Angle θ (readout only) <span class="val" id="aniso_theta_val">90°</span></label>
+            <input type="range" id="aniso_theta" min="0" max="180" step="1" value="90">
+          </div>
+        </div>
+        <div class="readout" id="aniso_readout"></div>
+      </div>
+      <div>
+        <div class="fig-panel"><canvas id="anisoCanvas" height="320"></canvas></div>
+        <p class="figure-tag">Fig. 3 — polar plot of F(r,θ). The horizontal bar at center is the source, drawn to scale. Dashed circle marks F = 1 (isotropic reference).</p>
+      </div>
+    </div>
+    <div class="callout"><strong>Simplified model.</strong> The anisotropy curves and radial functions shown throughout are illustrative approximations of the qualitative shape reported for each source class — not the tabulated consensus datasets. For treatment planning, use the source-specific tables in the TG-43U1 report and its 2007 supplement.</div>
+  </div>
+</section>
+
+<section id="map">
+  <div class="wrap">
+    <p class="sec-label">§6 — Assembling the full dose map</p>
+    <h2>All five terms, at once, in a plane</h2>
+    <div class="split">
+      <div>
+        <p>Now multiply everything together. The map on the right shades every point in a plane through the source's long axis by the dose rate the full equation predicts there — brighter and warmer where dose is high, cooler where it's low. Notice the characteristic shape: elongated perpendicular to the source (where g(r) alone governs the fall-off) and pinched in near the tips (where the anisotropy function bites hardest).</p>
+        <p><strong>Click anywhere on the map</strong> to see exactly how each of the five terms combined to produce the dose rate at that point.</p>
+        <div class="controls">
+          <div class="ctrl-row"><label>Source</label>
+            <select id="map_source">
+              <option value="ir192">¹⁹²Ir HDR</option>
+              <option value="i125">¹²⁵I seed</option>
+              <option value="pd103">¹⁰³Pd seed</option>
+            </select>
+          </div>
+          <div class="ctrl-row">
+            <label>Air-kerma strength S<sub>k</sub> <span class="val" id="map_sk_val">4.0 U</span></label>
+            <input type="range" id="map_sk" min="0.2" max="10" step="0.1" value="4">
+          </div>
+        </div>
+        <div class="readout" id="map_readout">Click the map to inspect a point →</div>
+      </div>
+      <div>
+        <div class="fig-panel"><canvas id="mapCanvas" height="360"></canvas>
+          <div class="legend"><span>low</span><div class="bar" id="mapLegendBar"></div><span>high (log scale, cGy/h)</span></div>
+        </div>
+        <p class="figure-tag">Fig. 4 — dose-rate map in the plane containing the source's long axis. Black bar at center is the source.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cloud">
+  <div class="wrap">
+    <p class="sec-label">§7 — The isodose cloud in three dimensions</p>
+    <h2>The same map, revolved around the source</h2>
+    <div class="split">
+      <div>
+        <p>Dose around a brachytherapy source doesn't just vary in one plane — because the source is (to a good approximation) symmetric about its long axis, the two-dimensional map from the last figure sweeps out a genuinely three-dimensional shape when revolved: something like a flattened, slightly pinched sphere, elongated around the source's waist and dimmed at its tips.</p>
+        <p>Each point below is sampled directly from the dose-rate equation and colored by its value — rotate it to see the true 3-D anisotropic shape that a 2-D isodose chart can only slice through.</p>
+        <div class="controls">
+          <div class="ctrl-row"><label>Source</label>
+            <select id="cloud_source">
+              <option value="ir192">¹⁹²Ir HDR</option>
+              <option value="i125">¹²⁵I seed</option>
+              <option value="pd103">¹⁰³Pd seed</option>
+            </select>
+          </div>
+          <div class="ctrl-row">
+            <label>Air-kerma strength S<sub>k</sub> <span class="val" id="cloud_sk_val">4.0 U</span></label>
+            <input type="range" id="cloud_sk" min="0.2" max="10" step="0.1" value="4">
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="fig-panel">
+          <div class="three-host" id="cloudScene"></div>
+          <p class="drag-hint">drag to rotate · scroll to zoom</p>
+          <div class="legend"><span>low</span><div class="bar" id="cloudLegendBar"></div><span>high</span></div>
+        </div>
+        <p class="figure-tag">Fig. 5 — each point is one sampled (r, θ, φ) location; color encodes relative dose rate on a log scale.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="quiz">
+  <div class="wrap col">
+    <p class="sec-label">§8 — Check your understanding</p>
+    <h2>Five questions</h2>
+    <div id="quizHost"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap col">
+    <p>Formalism after M. J. Rivard, B. M. Coursey, L. A. DeWerd, W. F. Hanson, M. S. Huq, G. S. Ibbott, M. G. Mitch, R. Nath, and J. F. Williamson, "Update of AAPM Task Group No. 43 Report: A revised AAPM protocol for brachytherapy dose calculations," <em>Medical Physics</em> 31(3), 633–674 (2004). All numeric source parameters on this page are simplified for teaching and are not suitable for clinical dosimetry.</p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ============================= THEME ============================= */
+try{
+  var savedTheme = localStorage.getItem('tg43-theme');
+  if(savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+}catch(e){}
+document.getElementById('themeBtn').addEventListener('click', function(){
+  var cur = document.documentElement.getAttribute('data-theme');
+  var next = cur === 'dark' ? 'light' : (cur === 'light' ? 'dark' : (matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark'));
+  document.documentElement.setAttribute('data-theme', next);
+  try{ localStorage.setItem('tg43-theme', next); }catch(e){}
+});
+
+/* ============================= PHYSICS ============================= */
+function d2r(d){ return d*Math.PI/180; }
+function clamp(v,a,b){ return Math.min(Math.max(v,a),b); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+
+function Gpoint(r){ return 1/(r*r); }
+
+function Gline(r, thetaDeg, L){
+  var theta = d2r(thetaDeg);
+  var x = r*Math.cos(theta);
+  var y = Math.max(r*Math.sin(theta), 1e-4);
+  if(thetaDeg < 0.6 || thetaDeg > 179.4){
+    var denom = (x-L/2)*(x+L/2);
+    return Math.abs(denom) > 1e-4 ? Math.abs(1/denom) : Gpoint(r);
+  }
+  var th1 = Math.atan2(y, x - L/2);
+  var th2 = Math.atan2(y, x + L/2);
+  var beta = th1 - th2;
+  return Math.abs(beta) / (L*y);
+}
+
+var SOURCES = {
+  ir192:{ label:"¹⁹²Ir HDR (microSelectron-type)", L:0.35, Lambda:1.108, Fmin:0.72, sigma:28,
+    g:[[0.5,1.030],[1,1.000],[2,0.976],[3,0.937],[4,0.902],[5,0.866],[6,0.826],[7,0.788],[8,0.748],[10,0.665]] },
+  i125:{ label:"¹²⁵I seed (model 6711-type)", L:0.30, Lambda:0.965, Fmin:0.42, sigma:22,
+    g:[[0.5,1.05],[1,1.000],[1.5,0.918],[2,0.828],[3,0.632],[4,0.463],[5,0.341],[6,0.246],[7,0.183],[8,0.134],[10,0.0709]] },
+  pd103:{ label:"¹⁰³Pd seed (model 200-type)", L:0.50, Lambda:0.686, Fmin:0.30, sigma:18,
+    g:[[0.5,1.03],[1,1.000],[1.5,0.878],[2,0.720],[3,0.428],[4,0.245],[5,0.140],[6,0.0851],[7,0.0501],[8,0.0303],[10,0.0113]] }
+};
+
+function gr(r, srcKey){
+  var pts = SOURCES[srcKey].g;
+  if(r<=pts[0][0]) return pts[0][1];
+  for(var i=0;i<pts.length-1;i++){
+    if(r>=pts[i][0] && r<=pts[i+1][0]){
+      var t=(r-pts[i][0])/(pts[i+1][0]-pts[i][0]);
+      return lerp(pts[i][1], pts[i+1][1], t);
+    }
+  }
+  return pts[pts.length-1][1];
+}
+
+function Fani(r, thetaDeg, srcKey){
+  var s = SOURCES[srcKey];
+  var depthFactor = clamp(1-(r-1)*0.05, 0, 1);
+  var dip = (1-s.Fmin)*depthFactor;
+  var sigma = s.sigma;
+  var d0 = Math.exp(-Math.pow(thetaDeg-0,2)/(2*sigma*sigma));
+  var d180 = Math.exp(-Math.pow(thetaDeg-180,2)/(2*sigma*sigma));
+  return Math.max(1 - dip*(d0+d180), 0.05);
+}
+
+function doseRate(r, thetaDeg, Sk, srcKey){
+  var s = SOURCES[srcKey];
+  var Gr = Gline(r, thetaDeg, s.L);
+  var Gref = Gline(1, 90, s.L);
+  var g = gr(r, srcKey);
+  var F = Fani(r, thetaDeg, srcKey);
+  return { total: Sk*s.Lambda*(Gr/Gref)*g*F, Gr:Gr, Gref:Gref, g:g, F:F, Lambda:s.Lambda, Sk:Sk };
+}
+
+function fmt(v, d){ if(v===undefined||v===null||isNaN(v)) return "–"; d = d===undefined?3:d;
+  if(Math.abs(v) < 0.001 && v!==0) return v.toExponential(2);
+  return v.toFixed(d);
+}
+
+/* ============================= COLORMAP ============================= */
+var STOPS = [[0.00,[16,30,64]],[0.16,[24,90,150]],[0.36,[18,150,150]],[0.52,[70,175,90]],
+             [0.70,[224,196,50]],[0.86,[224,120,35]],[1.00,[205,45,35]]];
+function doseColor(t){
+  t = clamp(t,0,1);
+  for(var i=0;i<STOPS.length-1;i++){
+    if(t>=STOPS[i][0] && t<=STOPS[i+1][0]){
+      var lt=(t-STOPS[i][0])/(STOPS[i+1][0]-STOPS[i][0]);
+      var a=STOPS[i][1], b=STOPS[i+1][1];
+      return [Math.round(lerp(a[0],b[0],lt)), Math.round(lerp(a[1],b[1],lt)), Math.round(lerp(a[2],b[2],lt))];
+    }
+  }
+  return STOPS[STOPS.length-1][1];
+}
+function colorCss(t){ var c=doseColor(t); return 'rgb('+c[0]+','+c[1]+','+c[2]+')'; }
+(function(){
+  var stopsCss = STOPS.map(function(s){ return colorCss(s[0])+' '+(s[0]*100)+'%'; }).join(',');
+  var css = 'background:linear-gradient(90deg,'+stopsCss+');';
+  document.getElementById('mapLegendBar').style.cssText = css;
+  document.getElementById('cloudLegendBar').style.cssText = css;
+})();
+
+/* ============================= EQUATION TERM HIGHLIGHT ============================= */
+var termEls = document.querySelectorAll('.term');
+var glossEls = document.querySelectorAll('#glossary > div');
+function setActiveTerm(key){
+  termEls.forEach(function(el){ el.classList.toggle('active', el.dataset.term===key); });
+  glossEls.forEach(function(el){ el.classList.toggle('active', el.dataset.term===key); });
+}
+termEls.forEach(function(el){
+  el.addEventListener('mouseenter', function(){ setActiveTerm(el.dataset.term); });
+  el.addEventListener('click', function(){ setActiveTerm(el.dataset.term); });
+});
+glossEls.forEach(function(el){
+  el.addEventListener('mouseenter', function(){ setActiveTerm(el.dataset.term); });
+});
+
+/* ============================= 3D ORBIT HELPER ============================= */
+function makeOrbit(renderer, camera, radius0){
+  var state = { az: 0.9, pol: 1.15, radius: radius0 };
+  function update(){
+    camera.position.set(
+      state.radius*Math.sin(state.pol)*Math.cos(state.az),
+      state.radius*Math.cos(state.pol),
+      state.radius*Math.sin(state.pol)*Math.sin(state.az)
+    );
+    camera.lookAt(0,0,0);
+  }
+  var dom = renderer.domElement;
+  dom.style.touchAction = 'none';
+  var dragging=false, lastX=0, lastY=0;
+  dom.addEventListener('pointerdown', function(e){ dragging=true; lastX=e.clientX; lastY=e.clientY; try{dom.setPointerCapture(e.pointerId);}catch(err){} });
+  window.addEventListener('pointerup', function(){ dragging=false; });
+  dom.addEventListener('pointermove', function(e){
+    if(!dragging) return;
+    var dx=e.clientX-lastX, dy=e.clientY-lastY;
+    state.az -= dx*0.008;
+    state.pol = clamp(state.pol - dy*0.008, 0.2, Math.PI-0.2);
+    lastX=e.clientX; lastY=e.clientY;
+    update();
+  });
+  dom.addEventListener('wheel', function(e){
+    e.preventDefault();
+    state.radius = clamp(state.radius + e.deltaY*0.01, radius0*0.35, radius0*3.5);
+    update();
+  }, {passive:false});
+  update();
+  return { update: update, state: state };
+}
+
+function fitRenderer(renderer, camera, host){
+  function resize(){
+    var w = host.clientWidth, h = host.clientHeight;
+    if(w<10||h<10) return;
+    renderer.setSize(w,h,false);
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(host);
+  resize();
+}
+
+/* ============================= FIG 1: GEOMETRY SCENE ============================= */
+var geoHost = document.getElementById('geoScene');
+var geoScene = new THREE.Scene();
+var geoCamera = new THREE.PerspectiveCamera(38, 4/3, 0.1, 100);
+var geoRenderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+geoHost.appendChild(geoRenderer.domElement);
+fitRenderer(geoRenderer, geoCamera, geoHost);
+geoScene.add(new THREE.AmbientLight(0xffffff, 0.75));
+var geoLight = new THREE.DirectionalLight(0xffffff, 0.9); geoLight.position.set(4,6,5); geoScene.add(geoLight);
+var geoOrbit = makeOrbit(geoRenderer, geoCamera, 7);
+
+// axis line
+var axisMat = new THREE.LineDashedMaterial({color:0x8a97a8, dashSize:0.1, gapSize:0.08});
+var axisGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-6,0,0), new THREE.Vector3(6,0,0)]);
+var axisLine = new THREE.Line(axisGeo, axisMat); axisLine.computeLineDistances(); geoScene.add(axisLine);
+
+var rodMat = new THREE.MeshStandardMaterial({color:0x9aa7b8, metalness:0.4, roughness:0.5});
+var rodMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,0.35,20), rodMat);
+rodMesh.rotation.z = Math.PI/2; geoScene.add(rodMesh);
+
+var tealMat = new THREE.MeshStandardMaterial({color:0x3fc2b6});
+var amberMat = new THREE.MeshStandardMaterial({color:0xe0a35c});
+var pMarker = new THREE.Mesh(new THREE.SphereGeometry(0.13,20,20), tealMat); geoScene.add(pMarker);
+var refMarker = new THREE.Mesh(new THREE.SphereGeometry(0.11,20,20), amberMat); geoScene.add(refMarker);
+
+var rLineMat = new THREE.LineBasicMaterial({color:0x3fc2b6});
+var rLineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(1,0,0)]);
+var rLine = new THREE.Line(rLineGeo, rLineMat); geoScene.add(rLine);
+
+var endLineMat = new THREE.LineDashedMaterial({color:0xe0a35c, dashSize:0.08, gapSize:0.06});
+var endLine1Geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)]);
+var endLine1 = new THREE.Line(endLine1Geo, endLineMat); geoScene.add(endLine1);
+var endLine2Geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)]);
+var endLine2 = new THREE.Line(endLine2Geo, endLineMat); geoScene.add(endLine2);
+
+var geo_r=3, geo_theta=60, geo_L=0.35, geo_mode='line';
+
+function updateGeoScene(){
+  var theta = d2r(geo_theta);
+  var px = geo_r*Math.cos(theta), py = geo_r*Math.sin(theta);
+  pMarker.position.set(px,py,0);
+  refMarker.position.set(0,1,0);
+  rodMesh.geometry.dispose();
+  rodMesh.geometry = new THREE.CylinderGeometry(0.09,0.09,geo_L,20);
+
+  rLine.geometry.dispose();
+  rLine.geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(px,py,0)]);
+
+  var showLines = geo_mode==='line';
+  endLine1.visible = showLines; endLine2.visible = showLines;
+  if(showLines){
+    endLine1.geometry.dispose();
+    endLine1.geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(geo_L/2,0,0), new THREE.Vector3(px,py,0)]);
+    endLine1.computeLineDistances();
+    endLine2.geometry.dispose();
+    endLine2.geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-geo_L/2,0,0), new THREE.Vector3(px,py,0)]);
+    endLine2.computeLineDistances();
+  }
+
+  var Gval = showLines ? Gline(geo_r, geo_theta, geo_L) : Gpoint(geo_r);
+  var Gref = showLines ? Gline(1,90,geo_L) : Gpoint(1);
+  document.getElementById('geo_readout').innerHTML =
+    '<div class="row"><span>y = r·sinθ</span><span>'+fmt(geo_r*Math.sin(theta))+' cm</span></div>'+
+    '<div class="row"><span>x = r·cosθ</span><span>'+fmt(geo_r*Math.cos(theta))+' cm</span></div>'+
+    '<div class="row"><span>G'+(showLines?'ₗ':'ₚ')+'(r,θ)</span><span>'+fmt(Gval,4)+' cm⁻²</span></div>'+
+    '<div class="row"><span>G'+(showLines?'ₗ':'ₚ')+'(1,90°)</span><span>'+fmt(Gref,4)+' cm⁻²</span></div>'+
+    '<div class="row total"><span>ratio used in Ḋ</span><span>'+fmt(Gval/Gref,4)+'</span></div>';
+}
+document.getElementById('geo_r').addEventListener('input', function(e){ geo_r=+e.target.value; document.getElementById('geo_r_val').textContent=geo_r.toFixed(1)+' cm'; updateGeoScene(); });
+document.getElementById('geo_theta').addEventListener('input', function(e){ geo_theta=+e.target.value; document.getElementById('geo_theta_val').textContent=geo_theta+'°'; updateGeoScene(); });
+document.getElementById('geo_L').addEventListener('input', function(e){ geo_L=+e.target.value; document.getElementById('geo_L_val').textContent=geo_L.toFixed(2)+' cm'; updateGeoScene(); });
+document.querySelectorAll('#geo_mode button').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('#geo_mode button').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active'); geo_mode = btn.dataset.mode; updateGeoScene();
+  });
+});
+updateGeoScene();
+(function animateGeo(){ requestAnimationFrame(animateGeo); geoRenderer.render(geoScene, geoCamera); })();
+
+/* ============================= FIG 2: RADIAL DOSE FUNCTION CHART ============================= */
+var radialCanvas = document.getElementById('radialCanvas');
+var radial_r = 3, radial_src = 'ir192';
+function drawRadial(){
+  var dpr = window.devicePixelRatio||1;
+  var cssW = radialCanvas.clientWidth || 600, cssH = 300;
+  radialCanvas.width = cssW*dpr; radialCanvas.height = cssH*dpr;
+  radialCanvas.style.height = cssH+'px';
+  var ctx = radialCanvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  var css = getComputedStyle(document.documentElement);
+  var line = css.getPropertyValue('--line').trim(), muted = css.getPropertyValue('--muted').trim(), paper=css.getPropertyValue('--paper').trim(), teal=css.getPropertyValue('--teal').trim();
+  ctx.clearRect(0,0,cssW,cssH);
+  var padL=42, padB=28, padT=14, padR=14;
+  var plotW=cssW-padL-padR, plotH=cssH-padT-padB;
+  var rMax=10, gMax=1.15;
+  function X(r){ return padL + (r/rMax)*plotW; }
+  function Y(g){ return padT + (1-g/gMax)*plotH; }
+  ctx.strokeStyle=line; ctx.fillStyle=muted; ctx.font='11px ui-monospace,monospace'; ctx.lineWidth=1;
+  ctx.beginPath();
+  for(var gy=0; gy<=1; gy+=0.25){ var y=Y(gy); ctx.moveTo(padL,y); ctx.lineTo(cssW-padR,y); }
+  ctx.stroke();
+  ctx.strokeStyle=line;
+  ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,cssH-padB); ctx.lineTo(cssW-padR,cssH-padB); ctx.stroke();
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  for(var gy2=0; gy2<=1; gy2+=0.25){ ctx.fillText(gy2.toFixed(2), padL-8, Y(gy2)); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  for(var rx=0; rx<=rMax; rx+=2){ ctx.fillText(rx+' cm', X(rx), cssH-padB+6); }
+
+  ['ir192','i125','pd103'].forEach(function(key){
+    var isActive = key===radial_src;
+    ctx.strokeStyle = isActive ? teal : (line);
+    ctx.globalAlpha = isActive ? 1 : 0.55;
+    ctx.lineWidth = isActive ? 2.4 : 1.4;
+    ctx.beginPath();
+    for(var i=0;i<=200;i++){
+      var r=0.3+(rMax-0.3)*(i/200);
+      var g=gr(r,key);
+      var x=X(r), y=Y(g);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  });
+  ctx.globalAlpha=1;
+  var gNow = gr(radial_r, radial_src);
+  var mx=X(radial_r), my=Y(gNow);
+  ctx.strokeStyle = css.getPropertyValue('--amber').trim(); ctx.setLineDash([4,4]); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(mx,padT); ctx.lineTo(mx,cssH-padB); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = teal; ctx.beginPath(); ctx.arc(mx,my,5,0,7); ctx.fill();
+  ctx.fillStyle=paper; ctx.font='600 11px ui-monospace,monospace'; ctx.textAlign='left'; ctx.textBaseline='bottom';
+  ctx.fillText('g('+radial_r.toFixed(1)+') = '+gNow.toFixed(3), Math.min(mx+8,cssW-120), my-6);
+
+  document.getElementById('radial_readout').innerHTML =
+    '<div class="row"><span>source</span><span>'+SOURCES[radial_src].label+'</span></div>'+
+    '<div class="row total"><span>g'+'ₗ'+'('+radial_r.toFixed(1)+' cm)</span><span>'+gNow.toFixed(4)+'</span></div>';
+}
+document.getElementById('radial_source').addEventListener('change', function(e){ radial_src=e.target.value; drawRadial(); });
+document.getElementById('radial_r').addEventListener('input', function(e){ radial_r=+e.target.value; document.getElementById('radial_r_val').textContent=radial_r.toFixed(1)+' cm'; drawRadial(); });
+new ResizeObserver(drawRadial).observe(radialCanvas);
+drawRadial();
+
+/* ============================= FIG 3: ANISOTROPY POLAR PLOT ============================= */
+var anisoCanvas = document.getElementById('anisoCanvas');
+var aniso_r = 2, aniso_src='ir192', aniso_theta=90;
+function drawAniso(){
+  var dpr = window.devicePixelRatio||1;
+  var cssW = anisoCanvas.clientWidth || 600, cssH=320;
+  anisoCanvas.width=cssW*dpr; anisoCanvas.height=cssH*dpr; anisoCanvas.style.height=cssH+'px';
+  var ctx = anisoCanvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  var css=getComputedStyle(document.documentElement);
+  var line=css.getPropertyValue('--line').trim(), muted=css.getPropertyValue('--muted').trim(), teal=css.getPropertyValue('--teal').trim(), amber=css.getPropertyValue('--amber').trim(), paper=css.getPropertyValue('--paper').trim();
+  ctx.clearRect(0,0,cssW,cssH);
+  var cx=cssW/2, cy=cssH/2, baseR=Math.min(cssW,cssH)/2 - 30;
+
+  ctx.strokeStyle=line; ctx.setLineDash([3,4]); ctx.lineWidth=1;
+  [0.25,0.5,0.75,1.0].forEach(function(f){ ctx.beginPath(); ctx.arc(cx,cy,baseR*f,0,Math.PI*2); ctx.stroke(); });
+  ctx.setLineDash([]);
+  ctx.fillStyle=muted; ctx.font='10.5px ui-monospace,monospace'; ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillText('F=1.0', cx+4, cy-baseR-4);
+
+  ctx.beginPath();
+  for(var a=0;a<=360;a+=2){
+    var thetaPhys = a<=180 ? a : 360-a;
+    var F = Fani(aniso_r, thetaPhys, aniso_src);
+    var rad = baseR*F;
+    var x = cx + rad*Math.cos(d2r(a));
+    var y = cy + rad*Math.sin(d2r(a));
+    if(a===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = teal+'33'; ctx.strokeStyle=teal; ctx.lineWidth=2.2;
+  ctx.fill(); ctx.stroke();
+
+  // source rod at center
+  var Lpix = Math.max(baseR*0.14, 10);
+  ctx.strokeStyle=paper; ctx.lineWidth=6; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(cx-Lpix,cy); ctx.lineTo(cx+Lpix,cy); ctx.stroke();
+
+  // marker at current theta
+  var Fcur = Fani(aniso_r, aniso_theta, aniso_src);
+  var radCur = baseR*Fcur;
+  var mx = cx + radCur*Math.cos(d2r(aniso_theta));
+  var my = cy + radCur*Math.sin(d2r(aniso_theta));
+  ctx.fillStyle = amber; ctx.beginPath(); ctx.arc(mx,my,5,0,7); ctx.fill();
+  ctx.strokeStyle=amber; ctx.setLineDash([3,3]); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(mx,my); ctx.stroke(); ctx.setLineDash([]);
+
+  ctx.fillStyle=muted; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('θ=0°', cx+baseR+18>cssW-4?cssW-24:cx+baseR+2, cy+4);
+  ctx.fillText('θ=180°', cx-baseR-2, cy+4);
+
+  document.getElementById('aniso_readout').innerHTML =
+    '<div class="row"><span>source</span><span>'+SOURCES[aniso_src].label+'</span></div>'+
+    '<div class="row total"><span>F('+aniso_r.toFixed(1)+' cm, '+aniso_theta+'°)</span><span>'+Fcur.toFixed(3)+'</span></div>';
+}
+document.getElementById('aniso_source').addEventListener('change', function(e){ aniso_src=e.target.value; drawAniso(); });
+document.getElementById('aniso_r').addEventListener('input', function(e){ aniso_r=+e.target.value; document.getElementById('aniso_r_val').textContent=aniso_r.toFixed(1)+' cm'; drawAniso(); });
+document.getElementById('aniso_theta').addEventListener('input', function(e){ aniso_theta=+e.target.value; document.getElementById('aniso_theta_val').textContent=aniso_theta+'°'; drawAniso(); });
+new ResizeObserver(drawAniso).observe(anisoCanvas);
+drawAniso();
+
+/* ============================= FIG 4: 2D DOSE MAP ============================= */
+var mapCanvas = document.getElementById('mapCanvas');
+var map_sk = 4, map_src = 'ir192';
+var mapPickPhys = null;
+var mapScaleInfo = null;
+
+function drawMap(){
+  var dpr = Math.min(window.devicePixelRatio||1, 2);
+  var cssW = mapCanvas.clientWidth || 600, cssH=340;
+  mapCanvas.width=cssW*dpr; mapCanvas.height=cssH*dpr; mapCanvas.style.height=cssH+'px';
+  var ctx = mapCanvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  var offW = 220, offH = Math.round(220*cssH/cssW);
+  var off = document.createElement('canvas'); off.width=offW; off.height=offH;
+  var octx = off.getContext('2d');
+  var img = octx.createImageData(offW, offH);
+
+  var extentX = 9; // cm each side
+  var extentY = extentX*offH/offW;
+  var L = SOURCES[map_src].L;
+
+  var doses = new Float64Array(offW*offH);
+  var minD=Infinity, maxD=-Infinity;
+  for(var j=0;j<offH;j++){
+    for(var i=0;i<offW;i++){
+      var xPhys = (i/offW - 0.5)*2*extentX;
+      var yPhys = (0.5 - j/offH)*2*extentY;
+      var rr = Math.sqrt(xPhys*xPhys+yPhys*yPhys);
+      var idx=j*offW+i;
+      if(rr < L/2*1.15 && Math.abs(yPhys) < 0.12){ doses[idx] = -1; continue; }
+      rr = Math.max(rr, 0.15);
+      var thetaPhys = Math.atan2(Math.abs(yPhys), xPhys)*180/Math.PI;
+      var d = doseRate(rr, thetaPhys, map_sk, map_src).total;
+      doses[idx]=d;
+      if(d<minD) minD=d; if(d>maxD) maxD=d;
+    }
+  }
+  var logMin = Math.log(Math.max(minD,1e-6)), logMax = Math.log(Math.max(maxD,1e-6));
+  for(var k=0;k<doses.length;k++){
+    var d2=doses[k];
+    var c;
+    if(d2<0){ c=[20,20,20]; }
+    else{
+      var t = (Math.log(Math.max(d2,1e-6))-logMin)/(logMax-logMin+1e-9);
+      t = Math.round(t*10)/10; // band it for pseudo-isodose contours
+      c = doseColor(t);
+    }
+    img.data[k*4]=c[0]; img.data[k*4+1]=c[1]; img.data[k*4+2]=c[2]; img.data[k*4+3]=255;
+  }
+  octx.putImageData(img,0,0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.clearRect(0,0,cssW,cssH);
+  ctx.drawImage(off,0,0,offW,offH,0,0,cssW,cssH);
+
+  mapScaleInfo = { extentX:extentX, extentY:extentY, cssW:cssW, cssH:cssH };
+
+  if(mapPickPhys){
+    var px = (mapPickPhys.x/(2*extentX)+0.5)*cssW;
+    var py = (0.5 - mapPickPhys.y/(2*extentY))*cssH;
+    ctx.strokeStyle='#ffffff'; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.moveTo(px-9,py); ctx.lineTo(px+9,py); ctx.moveTo(px,py-9); ctx.lineTo(px,py+9); ctx.stroke();
+    ctx.beginPath(); ctx.arc(px,py,9,0,7); ctx.stroke();
+  }
+
+  document.getElementById('map_sk_val').textContent = map_sk.toFixed(1)+' U';
+  if(mapPickPhys) reportMapPick();
+}
+
+function reportMapPick(){
+  var xPhys = mapPickPhys.x, yPhys = mapPickPhys.y;
+  var r = Math.max(Math.sqrt(xPhys*xPhys+yPhys*yPhys),0.15);
+  var theta = Math.atan2(Math.abs(yPhys), xPhys)*180/Math.PI;
+  var res = doseRate(r, theta, map_sk, map_src);
+  document.getElementById('map_readout').innerHTML =
+    '<div class="row"><span>r , θ</span><span>'+r.toFixed(2)+' cm, '+theta.toFixed(0)+'°</span></div>'+
+    '<div class="row"><span>S<sub>k</sub></span><span>'+map_sk.toFixed(1)+' U</span></div>'+
+    '<div class="row"><span>Λ</span><span>'+res.Lambda.toFixed(3)+' cGy·h⁻¹·U⁻¹</span></div>'+
+    '<div class="row"><span>G<sub>L</sub>/G<sub>L</sub>(r₀,θ₀)</span><span>'+fmt(res.Gr/res.Gref,4)+'</span></div>'+
+    '<div class="row"><span>g<sub>L</sub>(r)</span><span>'+res.g.toFixed(3)+'</span></div>'+
+    '<div class="row"><span>F(r,θ)</span><span>'+res.F.toFixed(3)+'</span></div>'+
+    '<div class="row total"><span>Ḋ(r,θ)</span><span>'+fmt(res.total,3)+' cGy/h</span></div>';
+}
+
+mapCanvas.addEventListener('click', function(e){
+  if(!mapScaleInfo) return;
+  var rect = mapCanvas.getBoundingClientRect();
+  var px = e.clientX-rect.left, py = e.clientY-rect.top;
+  var xPhys = (px/mapScaleInfo.cssW - 0.5)*2*mapScaleInfo.extentX;
+  var yPhys = (0.5 - py/mapScaleInfo.cssH)*2*mapScaleInfo.extentY;
+  mapPickPhys = {x:xPhys, y:yPhys};
+  drawMap();
+});
+document.getElementById('map_source').addEventListener('change', function(e){ map_src=e.target.value; buildCloudPositions(); drawMap(); });
+document.getElementById('map_sk').addEventListener('input', function(e){ map_sk=+e.target.value; drawMap(); });
+new ResizeObserver(drawMap).observe(mapCanvas);
+drawMap();
+
+/* ============================= FIG 5: 3D ISODOSE CLOUD ============================= */
+var cloudHost = document.getElementById('cloudScene');
+var cloudScene = new THREE.Scene();
+var cloudCamera = new THREE.PerspectiveCamera(40, 4/3, 0.1, 200);
+var cloudRenderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+cloudHost.appendChild(cloudRenderer.domElement);
+fitRenderer(cloudRenderer, cloudCamera, cloudHost);
+cloudScene.add(new THREE.AmbientLight(0xffffff, 0.9));
+var cloudOrbit = makeOrbit(cloudRenderer, cloudCamera, 14);
+
+var cloudRodMat = new THREE.MeshStandardMaterial({color:0xd8dee5});
+var cloudRod = new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.14,0.35,20), cloudRodMat);
+cloudRod.rotation.z = Math.PI/2; cloudScene.add(cloudRod);
+
+var SHELLS = [1,2,3,4,5,6,7,8];
+var THETA_STEPS = 18, PHI_STEPS = 16;
+var cloudSampleAngles = []; // {r,theta} for each point, in order
+SHELLS.forEach(function(r){
+  for(var ti=0; ti<=THETA_STEPS; ti++){
+    var theta = 6 + (168)*(ti/THETA_STEPS);
+    for(var pi=0; pi<PHI_STEPS; pi++){
+      var phi = (360*pi/PHI_STEPS);
+      cloudSampleAngles.push({r:r, theta:theta, phi:phi});
+    }
+  }
+});
+var nPts = cloudSampleAngles.length;
+var positions = new Float32Array(nPts*3);
+var colors = new Float32Array(nPts*3);
+for(var pIdx=0; pIdx<nPts; pIdx++){
+  var s = cloudSampleAngles[pIdx];
+  var th = d2r(s.theta), ph = d2r(s.phi);
+  var x = s.r*Math.cos(th);
+  var rho = s.r*Math.sin(th);
+  var y = rho*Math.cos(ph);
+  var z = rho*Math.sin(ph);
+  positions[pIdx*3]=x; positions[pIdx*3+1]=y; positions[pIdx*3+2]=z;
+}
+var cloudGeo = new THREE.BufferGeometry();
+cloudGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+cloudGeo.setAttribute('color', new THREE.BufferAttribute(colors,3));
+var cloudMat = new THREE.PointsMaterial({size:0.16, vertexColors:true, transparent:true, opacity:0.85, sizeAttenuation:true});
+var cloudPoints = new THREE.Points(cloudGeo, cloudMat);
+cloudScene.add(cloudPoints);
+
+var cloud_sk=4, cloud_src='ir192';
+function buildCloudPositions(){
+  cloudRod.geometry.dispose();
+  cloudRod.geometry = new THREE.CylinderGeometry(0.14,0.14,SOURCES[cloud_src].L,20);
+}
+function updateCloudColors(){
+  var doseVals = new Float64Array(nPts);
+  var minD=Infinity, maxD=-Infinity;
+  for(var i=0;i<nPts;i++){
+    var s = cloudSampleAngles[i];
+    var d = doseRate(s.r, s.theta, cloud_sk, cloud_src).total;
+    doseVals[i]=d;
+    if(d<minD) minD=d; if(d>maxD) maxD=d;
+  }
+  var logMin=Math.log(Math.max(minD,1e-6)), logMax=Math.log(Math.max(maxD,1e-6));
+  var colAttr = cloudGeo.getAttribute('color');
+  for(var j=0;j<nPts;j++){
+    var t = (Math.log(Math.max(doseVals[j],1e-6))-logMin)/(logMax-logMin+1e-9);
+    var c = doseColor(t);
+    colAttr.setXYZ(j, c[0]/255, c[1]/255, c[2]/255);
+  }
+  colAttr.needsUpdate = true;
+}
+document.getElementById('cloud_source').addEventListener('change', function(e){ cloud_src=e.target.value; buildCloudPositions(); updateCloudColors(); });
+document.getElementById('cloud_sk').addEventListener('input', function(e){ cloud_sk=+e.target.value; document.getElementById('cloud_sk_val').textContent=cloud_sk.toFixed(1)+' U'; updateCloudColors(); });
+buildCloudPositions();
+updateCloudColors();
+(function animateCloud(){ requestAnimationFrame(animateCloud); cloudRenderer.render(cloudScene, cloudCamera); })();
+
+/* ============================= QUIZ ============================= */
+var QUIZ = [
+  { q:"Why can't brachytherapy sources be treated as simple point sources at short distances?",
+    opts:["The source's finite physical length means different parts of it are at meaningfully different distances from a nearby point","Point sources don't emit photons","The inverse-square law doesn't apply in tissue","Air-kerma strength only applies to point sources"],
+    correct:0, explain:"This is exactly what the geometry function's line-source form corrects for — it accounts for the subtended angle β of the finite active length, which matters most close to the source." },
+  { q:"What does the radial dose function g(r) actually represent?",
+    opts:["The total dose rate at radius r","The inverse-square fall-off alone","Tissue attenuation and scatter build-up along θ=90°, after the geometric fall-off is factored out","The anisotropy of the source"],
+    correct:2, explain:"g(r) isolates the tissue-physics part of the fall-off — attenuation versus scatter build-up — independent of the purely geometric inverse-square effect." },
+  { q:"Why does dose dip near the ends of a linear source (θ near 0° or 180°)?",
+    opts:["Radioactive decay is directional","Photons there must pass through more of the source's own encapsulation and self-absorbing material","The geometry function is undefined there","Air-kerma strength is lower at the tips"],
+    correct:1, explain:"This oblique-filtration effect is exactly what the anisotropy function F(r,θ) captures." },
+  { q:"At the reference point (r₀=1 cm, θ₀=90°), what are g(r) and F(r,θ) both equal to, by definition?",
+    opts:["0","1","Λ","Sk"],
+    correct:1, explain:"Both functions are normalized to 1 at the reference point — that's the whole point of choosing a reference point in the first place." },
+  { q:"Which source class typically shows the steepest fall-off in g(r) with increasing distance?",
+    opts:["High-energy ¹⁹²Ir, because of its larger active length","Low-energy sources like ¹²⁵I or ¹⁰³Pd, because photoelectric absorption dominates at their energies","All sources fall off identically once normalized","None — g(r) is always flat by construction"],
+    correct:1, explain:"Lower-energy photons are absorbed far more readily, so g(r) drops much faster with distance for ¹²⁵I and especially ¹⁰³Pd than for ¹⁹²Ir." }
+];
+var quizHost = document.getElementById('quizHost');
+QUIZ.forEach(function(item, qi){
+  var div = document.createElement('div'); div.className='quiz-item';
+  var qEl = document.createElement('p'); qEl.className='quiz-q'; qEl.textContent=(qi+1)+'. '+item.q;
+  div.appendChild(qEl);
+  var optsWrap = document.createElement('div'); optsWrap.className='quiz-opts';
+  var explain = document.createElement('div'); explain.className='quiz-explain'; explain.textContent=item.explain;
+  item.opts.forEach(function(opt, oi){
+    var b = document.createElement('button'); b.className='quiz-opt'; b.textContent=opt;
+    b.addEventListener('click', function(){
+      if(b.dataset.answered) return;
+      Array.from(optsWrap.children).forEach(function(c){ c.dataset.answered='1'; });
+      if(oi===item.correct) b.classList.add('correct');
+      else{ b.classList.add('wrong'); optsWrap.children[item.correct].classList.add('correct'); }
+      explain.classList.add('show');
+    });
+    optsWrap.appendChild(b);
+  });
+  div.appendChild(optsWrap);
+  div.appendChild(explain);
+  quizHost.appendChild(div);
+});
+
+})();
+</script>
+</body>
+</html>
